@@ -1,3 +1,4 @@
+// mongoose is a ODM library for MongoDB and Node.js
 const mongoose = require("mongoose");
 
 const main = async () => {
