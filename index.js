@@ -1,75 +1,49 @@
-// mongoose is a ODM library for MongoDB and Node.js
-const mongoose = require("mongoose");
+const express = require("express");
+require("./config");
+const Product = require("./shop");
+const app = express();
+app.use(express.json());
 
-//  Connect MongoDB
-mongoose
-  .connect("mongodb://localhost:27017/e-commerce")
-  .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.log("Connection Error:", err));
-
-// Schema Ko Global Define Karna Zaroori Hai
-const ShopSchema = new mongoose.Schema({
-  name: String,
-  Age: Number,
+// POST API
+app.post("/create", async (req, resp) => {
+  let data = new Product(req.body);
+  let result = await data.save();
+  console.log(result);
+  resp.send(result);
 });
 
-// Model Define Karna hai globally
-const ShopSchema1 = mongoose.model("shop", ShopSchema, "shop");
+// GET API
+app.get("/list", async (req, resp) => {
+  let data = await Product.find();
+  resp.send(data);
+});
 
-// Function to Save Data in DB
-const SaveInDB = async () => {
-  let data = new ShopSchema1({
-    name: "shivam2",
-    Age: 20,
-  });
-  let result = await data.save();
-  console.log("Inserted:", result);
-};
-// SaveInDB()
+// Delete API
+app.delete("/delete/:_id", async (req, resp) => {
+  let data = await Product.deleteOne(req.params);
+  resp.send(data);
+});
 
-// Function to Update Data in DB
-const updateInDB = async () => {
-  let data = await ShopSchema1.updateOne(
-    { name: "shivam2" },
-    { $set: { name: "shivam3", Age: 30 } }
+// PUT API
+app.put("/update/:_id", async (req, resp) => {
+  let data = await Product.updateOne(
+    //condition
+    req.params,
+    {
+      // $set update data
+      $set: req.body,
+    }
   );
-  console.log("Updated:", data);
-};
-// updateInDB();
+  resp.send(data);
+});
 
-// Function to Delete Data in DB
-const deleteInDb = async () => {
-  let data = await ShopSchema1.deleteOne({ name: "shivam3" });
-  console.log(data);
-  console.log("Deleted:", data);
-};
-// deleteInDb();
+// Search API
+app.get("/search/:key", async (req, resp) => {
+  console.log(req.params.key);
+  let data = await Product.find({
+    $or: [{ name: { $regex: req.params.key } }],
+  });
+  resp.send(data);
+});
 
-// Function to Find Data in DB
-const findInDb = async () => {
-  let data = await ShopSchema1.find({ name: "Shubham Vishwakarma" });
-  console.log(data.length > 0 ? "Data Found" : "No Data Found", data);
-};
-// findInDb();
-
-// -------------------------------------------------------------------------------------------------------------------------------------------------
-
-// mongoose is a ODM library for MongoDB and Node.js
-// const mongoose = require("mongoose");
-
-// const main = async () => {
-//   await mongoose.connect("mongodb://localhost:27017/e-commerce");
-//   const ShopSchema = new mongoose.Schema({
-//     name: String,
-//     Age: Number,
-//   });
-//   const ShopSchema1 = mongoose.model("shop", ShopSchema, "shop");
-//   //   let data = new ShopSchema1({ name: "shivam2", Age: 20 });
-//   let result = await ShopSchema1.create({
-//     name: "shivam6",
-//     Age: 20,
-//   });
-//   console.log(result);
-// };
-
-// main();
+app.listen(5000);
